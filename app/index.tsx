@@ -1,124 +1,12 @@
+import MemberDetail from '@/components/MemberDetail';
 import { useFamily } from '@/context/FamilyContext';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-interface FamilyMember {
-  id: number;
-  full_name: string;
-  gender: string;
-  birth_date: string | null;
-  death_date: string | null;
-  father_id: number | null;
-  mother_id: number | null;
-  spouse_id: number | null;
-  notes: string | null;
-}
-
 export default function HomeScreen() {
-  const { members, loading, error, refresh } = useFamily();
+  const { members, loading, error,  } = useFamily();
 
-  const handleDelete = async (id: number) => {
-    try {
-      const res = await fetch(`http://localhost:8080/api/delete-family-member/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Xóa thất bại');
-      await refresh();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const renderItem = ({ item }: { item: FamilyMember }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <MaterialCommunityIcons
-          name={item.gender === 'Nam' ? 'account-circle-outline' : 'account-outline'}
-          size={38}
-          color={item.gender === 'Nam' ? '#2563EB' : '#EC4899'}
-          style={{ marginRight: 10 }}
-        />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{item.full_name}</Text>
-          <Text style={styles.meta}>👤 {item.gender}</Text>
-        </View>
-      </View>
-
-      <View style={styles.infoRow}>
-        <Text style={styles.label}>Sinh:</Text>
-        <Text style={styles.value}>
-          {item.birth_date ? new Date(item.birth_date).toLocaleDateString() : 'Không rõ'}
-        </Text>
-      </View>
-
-      {item.death_date && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Mất:</Text>
-          <Text style={[styles.value, { color: '#C62828' }]}>
-            {new Date(item.death_date).toLocaleDateString()}
-          </Text>
-        </View>
-      )}
-
-      {item.father_id && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>👨 Cha:</Text>
-          <Text style={styles.value}>#{item.father_id}</Text>
-        </View>
-      )}
-      {item.mother_id && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>👩 Mẹ:</Text>
-          <Text style={styles.value}>#{item.mother_id}</Text>
-        </View>
-      )}
-      {item.spouse_id && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>💍 Vợ/Chồng:</Text>
-          <Text style={styles.value}>#{item.spouse_id}</Text>
-        </View>
-      )}
-
-      {item.notes && (
-        <View style={styles.noteBox}>
-          <Text style={styles.noteText}>📝 {item.notes}</Text>
-        </View>
-      )}
-
-      <View style={styles.buttonRow}>
-        <Pressable
-          style={[styles.actionBtn, styles.viewBtn]}
-          onPress={() =>
-            router.push({
-              pathname: '/detail-member',
-              params: { id: item.id.toString(), name: item.full_name },
-            })
-          }
-        >
-          <Text style={styles.btnText}>Xem</Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.actionBtn, styles.editBtn]}
-          onPress={() =>
-            router.push({
-              pathname: '/edit-member',
-              params: { id: item.id.toString(), name: item.full_name },
-            })
-          }
-        >
-          <Text style={styles.btnText}>Sửa</Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.actionBtn, styles.deleteBtn]}
-          onPress={() => handleDelete(item.id)}
-        >
-          <Text style={styles.btnText}>Xóa</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
@@ -154,7 +42,7 @@ export default function HomeScreen() {
         <FlatList
           data={members}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
+          renderItem={({ item }) => <MemberDetail item={item} />}
           contentContainerStyle={{ paddingBottom: 60, paddingHorizontal: 16 }}
         />
       )}
