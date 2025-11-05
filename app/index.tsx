@@ -1,4 +1,4 @@
-import MemberDetail from '@/components/MemberDetail';
+import MemberCard from '@/components/MemberCard';
 import { useFamily } from '@/context/FamilyContext';
 import { Link } from 'expo-router';
 import React from 'react';
@@ -42,7 +42,7 @@ export default function HomeScreen() {
         <FlatList
           data={members}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <MemberDetail item={item} />}
+          renderItem={({ item }) => <MemberCard item={item} />}
           contentContainerStyle={{ paddingBottom: 60, paddingHorizontal: 16 }}
         />
       )}

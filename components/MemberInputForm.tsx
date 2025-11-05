@@ -4,8 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 
-import MemberInputForm from '@/components/MemberInputForm';
-
 const API_BASE_URL = 'http://localhost:8080';
 
 interface FamilyMember {
@@ -13,10 +11,16 @@ interface FamilyMember {
   full_name: string;
 }
 
-export default function AddMemberScreen() {
+interface MemberInputFormProps {
+    onPress?:() => void;
+    title?: string;
+    buttonTitle?: string;
+}
+
+export default function MemberInputForm({onPress, title, buttonTitle} : MemberInputFormProps) {
   const { refresh } = useFamily();
   const [full_name, setFullName] = useState('');
-  const [gender, setGender] = useState<'Nam' | 'Nữ'>('Nam');
+  const [gender, setGender] = useState<'Nam' | 'female' | 'other'>('other');
   const [birth_date, setBirthDate] = useState('');
   const [death_date, setDeathDate] = useState('');
   const [notes, setNotes] = useState('');
@@ -51,7 +55,7 @@ export default function AddMemberScreen() {
 
   const resetForm = () => {
     setFullName('');
-    setGender('Nam');
+    setGender('other');
     setBirthDate('');
     setDeathDate('');
     setNotes('');
@@ -65,7 +69,7 @@ export default function AddMemberScreen() {
       Toast.show({ type: 'error', text1: 'Thiếu thông tin', text2: 'Vui lòng nhập họ tên!' });
       return;
     }
-    if (!['Nam', 'Nữ'].includes(gender)) {
+    if (!['male', 'female', 'other'].includes(gender)) {
       Toast.show({ type: 'error', text1: 'Lỗi dữ liệu', text2: 'Giới tính không hợp lệ' });
       return;
     }
@@ -126,9 +130,6 @@ export default function AddMemberScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <MemberInputForm onPress={() => {
-        console.log('ABCD');
-      }}/>
       <Text  style={styles.title}>
         ➕ Thêm thành viên mới
       </Text>
@@ -149,8 +150,9 @@ export default function AddMemberScreen() {
         onValueChange={(value) => setGender(value)}
         style={styles.picker}
       >
-        <Picker.Item label="Nam" value="Nam" />
-        <Picker.Item label="Nữ" value="Nữ" />
+        <Picker.Item label="Other" value="other" />
+        <Picker.Item label="Male" value="male" />
+        <Picker.Item label="Female" value="female" />
       </Picker>
 
       {/* Birth Date */}
@@ -223,7 +225,9 @@ export default function AddMemberScreen() {
       <View style={styles.button}>
         <Button
           title={loading ? 'Đang thêm...' : 'Thêm thành viên'}
-          onPress={handleAddMember}
+        //   onPress={handleAddMember}
+          onPress={() => {console.log('1234')}}
+
           disabled={loading}
           color="#007AFF"
         />
