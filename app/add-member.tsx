@@ -1,53 +1,20 @@
+import MemberInputForm from '@/components/MemberInputForm';
 import { useFamily } from '@/context/FamilyContext';
-import { Picker } from '@react-native-picker/picker';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import Toast from 'react-native-toast-message';
 
-import MemberInputForm from '@/components/MemberInputForm';
-
-const API_BASE_URL = 'http://localhost:8080';
-
-interface FamilyMember {
-  id: number;
-  full_name: string;
-}
-
 export default function AddMemberScreen() {
+  const API_BASE_URL = 'http://localhost:8080';
   const { refresh } = useFamily();
   const [full_name, setFullName] = useState('');
   const [gender, setGender] = useState<'Nam' | 'Nữ'>('Nam');
   const [birth_date, setBirthDate] = useState('');
   const [death_date, setDeathDate] = useState('');
   const [notes, setNotes] = useState('');
-  const [father_id, setFatherId] = useState<number | null>(null);
-  const [mother_id, setMotherId] = useState<number | null>(null);
-  const [spouse_id, setSpouseId] = useState<number | null>(null);
-
-  const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingMembers, setLoadingMembers] = useState(true);
-
-  // Fetch danh sách thành viên để làm picker
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/list-all-family-members`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setMembers(data);
-      } catch (err) {
-        Toast.show({
-          type: 'error',
-          text1: 'Lỗi tải danh sách',
-          text2: (err as any).message || 'Không thể tải danh sách thành viên',
-        });
-      } finally {
-        setLoadingMembers(false);
-      }
-    };
-    fetchMembers();
-  }, []);
+  const [father_id, setFatherId] = useState<string | null>(null);
+  const [mother_id, setMotherId] = useState<string | null>(null);
+  const [spouse_id, setSpouseId] = useState<string | null>(null);
 
   const resetForm = () => {
     setFullName('');
@@ -65,12 +32,12 @@ export default function AddMemberScreen() {
       Toast.show({ type: 'error', text1: 'Thiếu thông tin', text2: 'Vui lòng nhập họ tên!' });
       return;
     }
+    console.log('gender', gender);
     if (!['Nam', 'Nữ'].includes(gender)) {
       Toast.show({ type: 'error', text1: 'Lỗi dữ liệu', text2: 'Giới tính không hợp lệ' });
       return;
     }
 
-    setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/add-family-member`, {
         method: 'POST',
@@ -96,7 +63,7 @@ export default function AddMemberScreen() {
         });
         resetForm();
         refresh();
-        
+
       } else {
         Toast.show({
           type: 'error',
@@ -110,127 +77,20 @@ export default function AddMemberScreen() {
         text1: '❌ Lỗi kết nối',
         text2: err.message || 'Không thể kết nối server',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (loadingMembers) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Đang tải danh sách thành viên...</Text>
-      </View>
-    );
-  }
-
+  console.log('full_name', full_name);
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <MemberInputForm onPress={() => {
-        console.log('ABCD');
-      }}/>
-      <Text  style={styles.title}>
-        ➕ Thêm thành viên mới
-      </Text>
-
-      {/* Full Name */}
-      <Text style={styles.label}>Họ và tên *</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nhập họ và tên"
-        value={full_name}
-        onChangeText={setFullName}
-      />
-
-      {/* Gender */}
-      <Text style={styles.label}>Giới tính *</Text>
-      <Picker
-        selectedValue={gender}
-        onValueChange={(value) => setGender(value)}
-        style={styles.picker}
-      >
-        <Picker.Item label="Nam" value="Nam" />
-        <Picker.Item label="Nữ" value="Nữ" />
-      </Picker>
-
-      {/* Birth Date */}
-      <Text style={styles.label}>Ngày sinh</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="YYYY-MM-DD"
-        value={birth_date}
-        onChangeText={setBirthDate}
-      />
-
-      {/* Death Date */}
-      <Text style={styles.label}>Ngày mất</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="YYYY-MM-DD"
-        value={death_date}
-        onChangeText={setDeathDate}
-      />
-
-      {/* Father */}
-      <Text style={styles.label}>Cha</Text>
-      <Picker
-        selectedValue={father_id}
-        onValueChange={(value) => setFatherId(value)}
-        style={styles.picker}
-      >
-        <Picker.Item label="Không chọn" value={null} />
-        {members.map((m) => (
-          <Picker.Item key={m.id} label={m.full_name} value={m.id} />
-        ))}
-      </Picker>
-
-      {/* Mother */}
-      <Text style={styles.label}>Mẹ</Text>
-      <Picker
-        selectedValue={mother_id}
-        onValueChange={(value) => setMotherId(value)}
-        style={styles.picker}
-      >
-        <Picker.Item label="Không chọn" value={null} />
-        {members.map((m) => (
-          <Picker.Item key={m.id} label={m.full_name} value={m.id} />
-        ))}
-      </Picker>
-
-      {/* Spouse */}
-      <Text style={styles.label}>Vợ/Chồng</Text>
-      <Picker
-        selectedValue={spouse_id}
-        onValueChange={(value) => setSpouseId(value)}
-        style={styles.picker}
-      >
-        <Picker.Item label="Không chọn" value={null} />
-        {members.map((m) => (
-          <Picker.Item key={m.id} label={m.full_name} value={m.id} />
-        ))}
-      </Picker>
-
-      {/* Notes */}
-      <Text style={styles.label}>Ghi chú</Text>
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        placeholder="Nhập ghi chú"
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-      />
-
-      <View style={styles.button}>
-        <Button
-          title={loading ? 'Đang thêm...' : 'Thêm thành viên'}
-          onPress={handleAddMember}
-          disabled={loading}
-          color="#007AFF"
-        />
-      </View>
-
-      {/* Toast */}
-      <Toast position="bottom" bottomOffset={50} />
+      <MemberInputForm full_name={full_name} setFullName={setFullName} gender={gender} setGender={setGender}
+        birth_date={birth_date} setBirthDate={setBirthDate} death_date={death_date} setDeathDate={setBirthDate}
+        father_id={father_id} setFatherId={setFatherId} mother_id={mother_id} setMotherId={setMotherId}
+        spouse_id={spouse_id} setSpouseId={setSpouseId} title='Thêm thành viên' buttonTitle='Thêm thành viên'
+        onPress={async () => {
+          //  await console.log('ABCD');
+          await handleAddMember();
+        }} />
     </ScrollView>
   );
 }
@@ -240,36 +100,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f9f9f9',
     flexGrow: 1,
-  },
-  title: {
-    textAlign: 'center',
-    fontSize: 22,
-    marginBottom: 20,
-    fontWeight: '600',
-  },
-  label: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: '#333',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  picker: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  button: {
-    marginTop: 10,
-    borderRadius: 8,
-    overflow: 'hidden',
   },
   centered: {
     flex: 1,

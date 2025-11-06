@@ -1,138 +1,40 @@
 import { useFamily } from '@/context/FamilyContext';
 import { Picker } from '@react-native-picker/picker';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React from 'react';
+import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import Toast from 'react-native-toast-message';
-
-const API_BASE_URL = 'http://localhost:8080';
-
-interface FamilyMember {
-  id: number;
-  full_name: string;
-}
-
 interface MemberInputFormProps {
-    onPress?:() => void;
-    title?: string;
-    buttonTitle?: string;
+  onPress?: () => Promise<void>;
+  title?: string;
+  buttonTitle?: string;
+  full_name?: string;
+  setFullName?: (value: string) => void;
+  gender?: 'Nam' | 'Nữ';
+  setGender?: React.Dispatch<React.SetStateAction<"Nam" | "Nữ">>;
+  birth_date?: string;
+  setBirthDate?: (value: string) => void;
+  death_date?: string;
+  setDeathDate?: (value: string) => void;
+  notes?: string;
+  setNotes?: (value: string) => void;
+  father_id?: string | null;
+  setFatherId?: (value: string | null) => void;
+  mother_id?: string | null;
+  setMotherId?: (value: string | null) => void;
+  spouse_id?: string | null;
+  setSpouseId?: (value: string | null) => void;
 }
 
-export default function MemberInputForm({onPress, title, buttonTitle} : MemberInputFormProps) {
-  const { refresh } = useFamily();
-  const [full_name, setFullName] = useState('');
-  const [gender, setGender] = useState<'Nam' | 'female' | 'other'>('other');
-  const [birth_date, setBirthDate] = useState('');
-  const [death_date, setDeathDate] = useState('');
-  const [notes, setNotes] = useState('');
-  const [father_id, setFatherId] = useState<number | null>(null);
-  const [mother_id, setMotherId] = useState<number | null>(null);
-  const [spouse_id, setSpouseId] = useState<number | null>(null);
-
-  const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingMembers, setLoadingMembers] = useState(true);
-
-  // Fetch danh sách thành viên để làm picker
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/list-all-family-members`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setMembers(data);
-      } catch (err) {
-        Toast.show({
-          type: 'error',
-          text1: 'Lỗi tải danh sách',
-          text2: (err as any).message || 'Không thể tải danh sách thành viên',
-        });
-      } finally {
-        setLoadingMembers(false);
-      }
-    };
-    fetchMembers();
-  }, []);
-
-  const resetForm = () => {
-    setFullName('');
-    setGender('other');
-    setBirthDate('');
-    setDeathDate('');
-    setNotes('');
-    setFatherId(null);
-    setMotherId(null);
-    setSpouseId(null);
-  };
-
-  const handleAddMember = async () => {
-    if (!full_name.trim()) {
-      Toast.show({ type: 'error', text1: 'Thiếu thông tin', text2: 'Vui lòng nhập họ tên!' });
-      return;
-    }
-    if (!['male', 'female', 'other'].includes(gender)) {
-      Toast.show({ type: 'error', text1: 'Lỗi dữ liệu', text2: 'Giới tính không hợp lệ' });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/add-family-member`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name,
-          gender,
-          birth_date: birth_date || null,
-          death_date: death_date || null,
-          notes: notes || null,
-          father_id,
-          mother_id,
-          spouse_id,
-        }),
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        Toast.show({
-          type: 'success',
-          text1: '✅ Thêm thành công!',
-          text2: 'Đã thêm thành viên mới.',
-        });
-        resetForm();
-        refresh();
-        
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: '❌ Thêm thất bại',
-          text2: data.error || 'Không thể thêm thành viên',
-        });
-      }
-    } catch (err: any) {
-      Toast.show({
-        type: 'error',
-        text1: '❌ Lỗi kết nối',
-        text2: err.message || 'Không thể kết nối server',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loadingMembers) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Đang tải danh sách thành viên...</Text>
-      </View>
-    );
-  }
+export default function MemberInputForm({ onPress, title, buttonTitle, full_name, setFullName, gender, setGender,
+  birth_date, setBirthDate, death_date, setDeathDate, notes, setNotes, father_id, setFatherId, mother_id, setMotherId, spouse_id, setSpouseId
+}: MemberInputFormProps) {
+  const { members, loading } = useFamily();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text  style={styles.title}>
-        ➕ Thêm thành viên mới
-      </Text>
+    <View style={styles.container}>
+      {title? <Text style={styles.title}>
+        {title}
+      </Text> : ''}
 
       {/* Full Name */}
       <Text style={styles.label}>Họ và tên *</Text>
@@ -147,12 +49,11 @@ export default function MemberInputForm({onPress, title, buttonTitle} : MemberIn
       <Text style={styles.label}>Giới tính *</Text>
       <Picker
         selectedValue={gender}
-        onValueChange={(value) => setGender(value)}
+        onValueChange={(value) => setGender?.(value)}
         style={styles.picker}
       >
-        <Picker.Item label="Other" value="other" />
-        <Picker.Item label="Male" value="male" />
-        <Picker.Item label="Female" value="female" />
+        <Picker.Item label="Nam" value="Nam" />
+        <Picker.Item label="Nữ" value="Nữ" />
       </Picker>
 
       {/* Birth Date */}
@@ -177,7 +78,7 @@ export default function MemberInputForm({onPress, title, buttonTitle} : MemberIn
       <Text style={styles.label}>Cha</Text>
       <Picker
         selectedValue={father_id}
-        onValueChange={(value) => setFatherId(value)}
+        onValueChange={(value) => setFatherId?.(value)}
         style={styles.picker}
       >
         <Picker.Item label="Không chọn" value={null} />
@@ -190,7 +91,7 @@ export default function MemberInputForm({onPress, title, buttonTitle} : MemberIn
       <Text style={styles.label}>Mẹ</Text>
       <Picker
         selectedValue={mother_id}
-        onValueChange={(value) => setMotherId(value)}
+        onValueChange={(value) => setMotherId?.(value)}
         style={styles.picker}
       >
         <Picker.Item label="Không chọn" value={null} />
@@ -203,7 +104,7 @@ export default function MemberInputForm({onPress, title, buttonTitle} : MemberIn
       <Text style={styles.label}>Vợ/Chồng</Text>
       <Picker
         selectedValue={spouse_id}
-        onValueChange={(value) => setSpouseId(value)}
+        onValueChange={(value) => setSpouseId?.(value)}
         style={styles.picker}
       >
         <Picker.Item label="Không chọn" value={null} />
@@ -224,9 +125,10 @@ export default function MemberInputForm({onPress, title, buttonTitle} : MemberIn
 
       <View style={styles.button}>
         <Button
-          title={loading ? 'Đang thêm...' : 'Thêm thành viên'}
-        //   onPress={handleAddMember}
-          onPress={() => {console.log('1234')}}
+          title={loading ? '...' : buttonTitle ? buttonTitle : ''}
+          // onPress={handleAddMember}
+          // onPress={() => {console.log('1234')}}
+          onPress={onPress}
 
           disabled={loading}
           color="#007AFF"
@@ -235,7 +137,7 @@ export default function MemberInputForm({onPress, title, buttonTitle} : MemberIn
 
       {/* Toast */}
       <Toast position="bottom" bottomOffset={50} />
-    </ScrollView>
+    </View>
   );
 }
 

@@ -30,97 +30,94 @@ const MemberCard = ({ item }: { item: FamilyMember }) => {
     }
   };
   return (
-    <View>      
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <MaterialCommunityIcons
-            name={item.gender === 'Nam' ? 'account-circle-outline' : 'account-outline'}
-            size={38}
-            color={item.gender === 'Nam' ? '#2563EB' : '#EC4899'}
-            style={{ marginRight: 10 }}
-          />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.name}>{item.full_name}</Text>
-            <Text style={styles.meta}>👤 {item.gender}</Text>
-          </View>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Sinh:</Text>
-          <Text style={styles.value}>
-            {item.birth_date ? item.birth_date : 'Không rõ'}
-          </Text>
-        </View>
-
-        {item.death_date && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Mất:</Text>
-            <Text style={[styles.value, { color: '#C62828' }]}>
-              {item.death_date}
-            </Text>
-          </View>
-        )}
-
-        {item.father_id && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>👨 Cha:</Text>
-            <Text style={styles.value}>{members.filter(member => member.id === item.father_id)[0].full_name}</Text>
-          </View>
-        )}
-        {item.mother_id && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>👩 Mẹ:</Text>
-            <Text style={styles.value}>{members.filter(member => member.id === item.mother_id)[0].full_name}</Text>
-          </View>
-        )}
-        {item.spouse_id && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>💍 {item.gender === 'male' ? 'Vợ' : 'Chồng'}</Text>
-            <Text style={styles.value}>{members.filter(member => member.id === item.spouse_id)[0].full_name}</Text>
-          </View>
-        )}
-
-        {item.notes && (
-          <View style={styles.noteBox}>
-            <Text style={styles.noteText}>📝 {item.notes}</Text>
-          </View>
-        )}
-
-        <View style={styles.buttonRow}>
-          <Pressable
-            style={[styles.actionBtn, styles.viewBtn]}
-            onPress={() =>
-              router.push({
-                pathname: '/detail-member',
-                params: { id: item.id.toString(), name: item.full_name },
-              })
-            }
-          >
-            <Text style={styles.btnText}>Xem</Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.actionBtn, styles.editBtn]}
-            onPress={() =>
-              router.push({
-                pathname: '/edit-member',
-                params: { id: item.id.toString(), name: item.full_name },
-              })
-            }
-          >
-            <Text style={styles.btnText}>Sửa</Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.actionBtn, styles.deleteBtn]}
-            onPress={() => handleDelete(item.id)}
-          >
-            <Text style={styles.btnText}>Xóa</Text>
-          </Pressable>
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <MaterialCommunityIcons
+          name={item.gender === 'Nam' ? 'account-circle-outline' : 'account-outline'}
+          size={38}
+          color={item.gender === 'Nam' ? '#2563EB' : '#EC4899'}
+          style={{ marginRight: 10 }}
+        />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.name}>{item.full_name}</Text>
+          <Text style={styles.meta}>👤 {item.gender}</Text>
         </View>
       </View>
-    </View>
 
+      <View style={styles.infoRow}>
+        <Text style={styles.label}>Sinh:</Text>
+        <Text style={styles.value}>
+          {item.birth_date ? item.birth_date : 'Không rõ'}
+        </Text>
+      </View>
+
+      {item.death_date && (
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>Mất:</Text>
+          <Text style={[styles.value, { color: '#C62828' }]}>
+            {item.death_date}
+          </Text>
+        </View>
+      )}
+
+      {item.father_id && (
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>👨 Cha:</Text>
+          <Text style={styles.value}>{members.filter(member => member.id === item.father_id)[0].full_name}</Text>
+        </View>
+      )}
+      {item.mother_id && (
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>👩 Mẹ:</Text>
+          <Text style={styles.value}>{members.filter(member => member.id === item.mother_id)[0].full_name}</Text>
+        </View>
+      )}
+      {item.spouse_id && (
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>💍 {item.gender === 'nam' ? 'Vợ' : 'Chồng'}</Text>
+          <Text style={styles.value}>{members.filter(member => member.id === item.spouse_id)[0].full_name}</Text>
+        </View>
+      )}
+
+      {item.notes && (
+        <View style={styles.noteBox}>
+          <Text style={styles.noteText}>📝 {item.notes}</Text>
+        </View>
+      )}
+
+      <View style={styles.buttonRow}>
+        <Pressable
+          style={[styles.actionBtn, styles.viewBtn]}
+          onPress={() =>
+            router.push({
+              pathname: '/detail-member',
+              params: { id: item.id.toString(), name: item.full_name },
+            })
+          }
+        >
+          <Text style={styles.btnText}>Xem</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.actionBtn, styles.editBtn]}
+          onPress={() =>
+            router.push({
+              pathname: '/edit-member',
+              params: { id: item.id.toString(), name: item.full_name },
+            })
+          }
+        >
+          <Text style={styles.btnText}>Sửa</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.actionBtn, styles.deleteBtn]}
+          onPress={() => handleDelete(item.id)}
+        >
+          <Text style={styles.btnText}>Xóa</Text>
+        </Pressable>
+      </View>
+    </View>
   )
 };
 
