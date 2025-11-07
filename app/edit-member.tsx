@@ -101,10 +101,9 @@ export default function EditMemberScreen() {
       <MemberInputForm full_name={full_name} setFullName={setFullName} gender={gender} setGender={setGender} notes={notes}
         setNotes={setNotes} phone_numbers={phone_numbers} setPhoneNumbers={setPhoneNumbers} address={address} setAddress={setAddress}
         birth_date={birth_date} setBirthDate={setBirthDate} death_date={death_date} setDeathDate={setDeathDate}
-        father_id={father_id} setFatherId={setFatherId} mother_id={mother_id} setMotherId={setMotherId}
+        father_id={father_id} setFatherId={setFatherId} mother_id={mother_id} setMotherId={setMotherId} current_id={String(id)}
         spouse_id={spouse_id} setSpouseId={setSpouseId} title='Sửa thông tin' buttonTitle='Sửa thông tin'
         onPress={async () => {
-          //  await console.log('ABCD');
           await handleSave();
         }} />
     </View>
