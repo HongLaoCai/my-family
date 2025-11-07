@@ -35,9 +35,6 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
   birth_date, setBirthDate, death_date, setDeathDate, notes, setNotes, father_id, setFatherId, mother_id, setMotherId, spouse_id, setSpouseId
 }: MemberInputFormProps) {
   const { members, loading } = useFamily();
-  console.log('current_id', current_id);
-  console.log('members', members);
-
   // ✅ Kiểm tra quan hệ
   const isParentOfCurrent = (m: any) =>
     m.id === father_id || m.id === mother_id;
@@ -176,8 +173,6 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
         <View style={styles.button}>
           <Button
             title={loading ? '...' : buttonTitle ? buttonTitle : ''}
-            // onPress={handleAddMember}
-            // onPress={() => {console.log('1234')}}
             onPress={onPress}
 
             disabled={loading}

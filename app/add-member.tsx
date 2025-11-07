@@ -96,7 +96,6 @@ export default function AddMemberScreen() {
         father_id={father_id} setFatherId={setFatherId} mother_id={mother_id} setMotherId={setMotherId}
         spouse_id={spouse_id} setSpouseId={setSpouseId} title='Thêm thành viên' buttonTitle='Thêm thành viên'
         onPress={async () => {
-          //  await console.log('ABCD');
           await handleAddMember();
         }} />
     </ScrollView>
