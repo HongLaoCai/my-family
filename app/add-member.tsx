@@ -9,6 +9,8 @@ export default function AddMemberScreen() {
   const { refresh } = useFamily();
   const [full_name, setFullName] = useState('');
   const [gender, setGender] = useState<'Nam' | 'Nữ'>('Nam');
+  const [phone_numbers, setPhoneNumbers] = useState('');
+  const [address, setAddress] = useState('');
   const [birth_date, setBirthDate] = useState('');
   const [death_date, setDeathDate] = useState('');
   const [notes, setNotes] = useState('');
@@ -19,6 +21,8 @@ export default function AddMemberScreen() {
   const resetForm = () => {
     setFullName('');
     setGender('Nam');
+    setPhoneNumbers('');
+    setAddress('');
     setBirthDate('');
     setDeathDate('');
     setNotes('');
@@ -28,6 +32,7 @@ export default function AddMemberScreen() {
   };
 
   const handleAddMember = async () => {
+    const id = 'id' + Math.floor(Math.random() * 10000);
     if (!full_name.trim()) {
       Toast.show({ type: 'error', text1: 'Thiếu thông tin', text2: 'Vui lòng nhập họ tên!' });
       return;
@@ -43,8 +48,11 @@ export default function AddMemberScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id,
           full_name,
           gender,
+          phone_numbers,
+          address,
           birth_date: birth_date || null,
           death_date: death_date || null,
           notes: notes || null,
@@ -80,11 +88,11 @@ export default function AddMemberScreen() {
     }
   };
 
-  console.log('full_name', full_name);
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <MemberInputForm full_name={full_name} setFullName={setFullName} gender={gender} setGender={setGender}
-        birth_date={birth_date} setBirthDate={setBirthDate} death_date={death_date} setDeathDate={setBirthDate}
+      <MemberInputForm full_name={full_name} setFullName={setFullName} gender={gender} setGender={setGender} notes={notes}
+        setNotes={setNotes} phone_numbers={phone_numbers} setPhoneNumbers={setPhoneNumbers} address={address} setAddress={setAddress}
+        birth_date={birth_date} setBirthDate={setBirthDate} death_date={death_date} setDeathDate={setDeathDate}
         father_id={father_id} setFatherId={setFatherId} mother_id={mother_id} setMotherId={setMotherId}
         spouse_id={spouse_id} setSpouseId={setSpouseId} title='Thêm thành viên' buttonTitle='Thêm thành viên'
         onPress={async () => {

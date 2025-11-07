@@ -2,14 +2,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface FamilyMember {
-  id: number;
+  id: string;
   full_name: string;
   gender: string;
+  phone_numbers: string;
+  address: string;
   birth_date: string | null;
   death_date: string | null;
-  father_id: number | null;
-  mother_id: number | null;
-  spouse_id: number | null;
+  father_id: string | null;
+  mother_id: string | null;
+  spouse_id: string | null;
   notes: string | null;
 }
 

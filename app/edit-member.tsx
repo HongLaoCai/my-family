@@ -1,10 +1,9 @@
+import MemberInputForm from '@/components/MemberInputForm';
 import { useFamily } from '@/context/FamilyContext';
-import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Toast from 'react-native-toast-message';
-
 const API_BASE_URL = 'http://localhost:8080';
 
 export default function EditMemberScreen() {
@@ -12,50 +11,49 @@ export default function EditMemberScreen() {
   const { id } = useLocalSearchParams();
   const { members, refresh } = useFamily();
 
-  const [loading, setLoading] = useState(false);
-
-  const memberId = Number(id);
-  const current = members.find((m) => m.id === memberId);
+  const current = members.find((m) => m.id === id);
 
   const [full_name, setFullName] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | 'other'>('other');
+  const [gender, setGender] = useState<'Nam' | 'Nữ'>('Nam');
+  const [phone_numbers, setPhoneNumbers] = useState('');
+  const [address, setAddress] = useState('');
   const [birth_date, setBirthDate] = useState('');
   const [death_date, setDeathDate] = useState('');
   const [notes, setNotes] = useState('');
-  const [father_id, setFatherId] = useState<number | null>(null);
-  const [mother_id, setMotherId] = useState<number | null>(null);
-  const [spouse_id, setSpouseId] = useState<number | null>(null);
+  const [father_id, setFatherId] = useState<string | null>(null);
+  const [mother_id, setMotherId] = useState<string | null>(null);
+  const [spouse_id, setSpouseId] = useState<string | null>(null);
 
   // ✅ Khi có dữ liệu member, điền sẵn form
   useEffect(() => {
     if (current) {
       setFullName(current.full_name);
-      setGender(current.gender as 'male' | 'female' | 'other');
+      setGender(current.gender as 'Nam' | 'Nữ');
+      setPhoneNumbers(current.phone_numbers || '');
+      setAddress(current.address || '');
       setBirthDate(current.birth_date || '');
       setDeathDate(current.death_date || '');
       setNotes(current.notes || '');
-      setFatherId(current.father_id);
-      setMotherId(current.mother_id);
-      setSpouseId(current.spouse_id);
+      setFatherId(String(current.father_id));
+      setMotherId(String(current.mother_id));
+      setSpouseId(String(current.spouse_id));
     }
   }, [current]);
-
   const handleSave = async () => {
     if (!full_name.trim()) {
       Toast.show({ type: 'error', text1: 'Thiếu thông tin', text2: 'Vui lòng nhập họ tên!' });
       return;
     }
-
-    setLoading(true);
     try {
-      
       const res = await fetch(`${API_BASE_URL}/api/update-family-member/${id}`, {
-        method: 'PUT', 
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: memberId, // gửi kèm id để backend biết là sửa
+          id, // gửi kèm id để backend biết là sửa
           full_name,
           gender,
+          phone_numbers,
+          address,
           birth_date: birth_date || null,
           death_date: death_date || null,
           notes: notes || null,
@@ -87,8 +85,6 @@ export default function EditMemberScreen() {
         text1: '❌ Lỗi kết nối',
         text2: err.message || 'Không thể kết nối server',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -101,78 +97,17 @@ export default function EditMemberScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>
-        ✏️ Sửa thông tin thành viên
-      </Text>
-
-      {/* Full Name */}
-      <Text style={styles.label}>Họ và tên *</Text>
-      <TextInput style={styles.input} value={full_name} onChangeText={setFullName} />
-
-      {/* Gender */}
-      <Text style={styles.label}>Giới tính *</Text>
-      <Picker selectedValue={gender} onValueChange={setGender} style={styles.picker}>
-        <Picker.Item label="Other" value="other" />
-        <Picker.Item label="Male" value="male" />
-        <Picker.Item label="Female" value="female" />
-      </Picker>
-
-      {/* Birth Date */}
-      <Text style={styles.label}>Ngày sinh</Text>
-      <TextInput style={styles.input} value={birth_date} onChangeText={setBirthDate} />
-
-      {/* Death Date */}
-      <Text style={styles.label}>Ngày mất</Text>
-      <TextInput style={styles.input} value={death_date} onChangeText={setDeathDate} />
-
-      {/* Father */}
-      <Text style={styles.label}>Cha</Text>
-      <Picker selectedValue={father_id} onValueChange={setFatherId} style={styles.picker}>
-        <Picker.Item label="Không chọn" value={null} />
-        {members.map((m) => (
-          <Picker.Item key={m.id} label={m.full_name} value={m.id} />
-        ))}
-      </Picker>
-
-      {/* Mother */}
-      <Text style={styles.label}>Mẹ</Text>
-      <Picker selectedValue={mother_id} onValueChange={setMotherId} style={styles.picker}>
-        <Picker.Item label="Không chọn" value={null} />
-        {members.map((m) => (
-          <Picker.Item key={m.id} label={m.full_name} value={m.id} />
-        ))}
-      </Picker>
-
-      {/* Spouse */}
-      <Text style={styles.label}>Vợ/Chồng</Text>
-      <Picker selectedValue={spouse_id} onValueChange={setSpouseId} style={styles.picker}>
-        <Picker.Item label="Không chọn" value={null} />
-        {members.map((m) => (
-          <Picker.Item key={m.id} label={m.full_name} value={m.id} />
-        ))}
-      </Picker>
-
-      {/* Notes */}
-      <Text style={styles.label}>Ghi chú</Text>
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-      />
-
-      <View style={styles.button}>
-        <Button
-          title={loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-          onPress={handleSave}
-          disabled={loading}
-          color="#007AFF"
-        />
-      </View>
-
-      <Toast position="bottom" bottomOffset={50} />
-    </ScrollView>
+    <View style={styles.container}>
+      <MemberInputForm full_name={full_name} setFullName={setFullName} gender={gender} setGender={setGender} notes={notes}
+        setNotes={setNotes} phone_numbers={phone_numbers} setPhoneNumbers={setPhoneNumbers} address={address} setAddress={setAddress}
+        birth_date={birth_date} setBirthDate={setBirthDate} death_date={death_date} setDeathDate={setDeathDate}
+        father_id={father_id} setFatherId={setFatherId} mother_id={mother_id} setMotherId={setMotherId}
+        spouse_id={spouse_id} setSpouseId={setSpouseId} title='Sửa thông tin' buttonTitle='Sửa thông tin'
+        onPress={async () => {
+          //  await console.log('ABCD');
+          await handleSave();
+        }} />
+    </View>
   );
 }
 

@@ -13,6 +13,10 @@ interface MemberInputFormProps {
   setGender?: React.Dispatch<React.SetStateAction<"Nam" | "Nữ">>;
   birth_date?: string;
   setBirthDate?: (value: string) => void;
+  phone_numbers?: string;
+  setPhoneNumbers?: (value: string) => void;
+  address?: string;
+  setAddress?: (value: string) => void;
   death_date?: string;
   setDeathDate?: (value: string) => void;
   notes?: string;
@@ -25,7 +29,8 @@ interface MemberInputFormProps {
   setSpouseId?: (value: string | null) => void;
 }
 
-export default function MemberInputForm({ onPress, title, buttonTitle, full_name, setFullName, gender, setGender,
+export default function MemberInputForm({ onPress, title, buttonTitle, full_name, setFullName, gender, setGender, phone_numbers, 
+  setPhoneNumbers, address, setAddress,
   birth_date, setBirthDate, death_date, setDeathDate, notes, setNotes, father_id, setFatherId, mother_id, setMotherId, spouse_id, setSpouseId
 }: MemberInputFormProps) {
   const { members, loading } = useFamily();
@@ -56,6 +61,22 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
         <Picker.Item label="Nữ" value="Nữ" />
       </Picker>
 
+      {/* Phone Numbers */}
+      <Text style={styles.label}>Số điện thoại</Text>
+      <TextInput
+        style={styles.input}
+        value={phone_numbers}
+        onChangeText={setPhoneNumbers}
+      />
+
+      {/* Address */}
+      <Text style={styles.label}>Địa chỉ</Text>
+      <TextInput
+        style={styles.input}
+        value={address}
+        onChangeText={setAddress}
+      />
+
       {/* Birth Date */}
       <Text style={styles.label}>Ngày sinh</Text>
       <TextInput
@@ -81,7 +102,7 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
         onValueChange={(value) => setFatherId?.(value)}
         style={styles.picker}
       >
-        <Picker.Item label="Không chọn" value={null} />
+        <Picker.Item label="Không chọn" value={"Không chọn"} />
         {members.map((m) => (
           <Picker.Item key={m.id} label={m.full_name} value={m.id} />
         ))}
@@ -94,7 +115,7 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
         onValueChange={(value) => setMotherId?.(value)}
         style={styles.picker}
       >
-        <Picker.Item label="Không chọn" value={null} />
+        <Picker.Item label="Không chọn" value={"Không chọn"} />
         {members.map((m) => (
           <Picker.Item key={m.id} label={m.full_name} value={m.id} />
         ))}
@@ -107,7 +128,7 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
         onValueChange={(value) => setSpouseId?.(value)}
         style={styles.picker}
       >
-        <Picker.Item label="Không chọn" value={null} />
+        <Picker.Item label="Không chọn" value={"Không chọn"} />
         {members.map((m) => (
           <Picker.Item key={m.id} label={m.full_name} value={m.id} />
         ))}

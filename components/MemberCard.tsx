@@ -3,24 +3,26 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from "react-native";
 interface FamilyMember {
-  id: number;
+  id: string;
   full_name: string;
   gender: string;
+  phone_numbers: string;
+  address: string;
   birth_date: string | null;
   death_date: string | null;
-  father_id: number | null;
-  mother_id: number | null;
-  spouse_id: number | null;
+  father_id: string | null;
+  mother_id: string | null;
+  spouse_id: string | null;
   notes: string | null;
 }
 
 const MemberCard = ({ item }: { item: FamilyMember }) => {
   console.log('item', item.id);
-  const { refresh, members, error, loading } = useFamily();
+  const { refresh, members } = useFamily();
 
   console.log('members', members);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`http://localhost:8080/api/delete-family-member/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Xóa thất bại');
@@ -42,6 +44,20 @@ const MemberCard = ({ item }: { item: FamilyMember }) => {
           <Text style={styles.name}>{item.full_name}</Text>
           <Text style={styles.meta}>👤 {item.gender}</Text>
         </View>
+      </View>
+
+      <View style={styles.infoRow}>
+        <Text style={styles.label}>Số điện thoại:</Text>
+        <Text style={styles.value}>
+          {item.phone_numbers ? item.phone_numbers : 'Không rõ'}
+        </Text>
+      </View>
+
+      <View style={styles.infoRow}>
+        <Text style={styles.label}>Địa chỉ: </Text>
+        <Text style={styles.value}>
+          {item.address ? item.address : 'Không rõ'}
+        </Text>
       </View>
 
       <View style={styles.infoRow}>
