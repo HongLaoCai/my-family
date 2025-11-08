@@ -1,30 +1,14 @@
 import MemberCard from '@/components/MemberCard';
 import { useFamily } from '@/context/FamilyContext';
-import { Link } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
-  const { members, loading, error,  } = useFamily();
+  const { members, loading, error, } = useFamily();
 
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          👨‍👩‍👧‍👦 Gia phả của bạn
-        </Text>
-        <Text style={styles.headerSubtitle}>
-          Theo dõi và quản lý thông tin chi tiết từng thành viên trong gia đình.
-        </Text>
-      </View>
-
-      <Link href="/add-member" asChild>
-        <Pressable style={styles.addBtn}>
-          <Text style={styles.addBtnText}>+ Thêm thành viên mới</Text>
-        </Pressable>
-      </Link>
-
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#007AFF" />
@@ -42,7 +26,7 @@ export default function HomeScreen() {
         <FlatList
           data={members}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <MemberCard item={item} />}
+          renderItem={({ item }) => <MemberCard id={item.id} />}
           contentContainerStyle={{ paddingBottom: 60, paddingHorizontal: 16 }}
         />
       )}
