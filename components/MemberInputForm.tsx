@@ -3,69 +3,128 @@ import { Picker } from '@react-native-picker/picker';
 import React from 'react';
 import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Toast from 'react-native-toast-message';
+
 interface MemberInputFormProps {
   onPress?: () => Promise<void>;
   title?: string;
   buttonTitle?: string;
+
   full_name?: string;
   setFullName?: (value: string) => void;
+
   gender?: 'Nam' | 'Nữ';
   setGender?: React.Dispatch<React.SetStateAction<"Nam" | "Nữ">>;
+
   birth_date?: string;
   setBirthDate?: (value: string) => void;
+
   phone_numbers?: string;
   setPhoneNumbers?: (value: string) => void;
+
   address?: string;
   setAddress?: (value: string) => void;
+
   death_date?: string;
   setDeathDate?: (value: string) => void;
+
   notes?: string;
   setNotes?: (value: string) => void;
+
   father_id?: string | null;
   setFatherId?: (value: string | null) => void;
+
   mother_id?: string | null;
   setMotherId?: (value: string | null) => void;
+
   spouse_id?: string | null;
   setSpouseId?: (value: string | null) => void;
+
   current_id?: string;
 }
 
-export default function MemberInputForm({ onPress, title, buttonTitle, full_name, setFullName, gender, setGender, phone_numbers,
-  setPhoneNumbers, address, setAddress, current_id,
-  birth_date, setBirthDate, death_date, setDeathDate, notes, setNotes, father_id, setFatherId, mother_id, setMotherId, spouse_id, setSpouseId
+export default function MemberInputForm({
+  onPress,
+  title,
+  buttonTitle,
+  full_name,
+  setFullName,
+  gender,
+  setGender,
+  phone_numbers,
+  setPhoneNumbers,
+  address,
+  setAddress,
+  current_id,
+  birth_date,
+  setBirthDate,
+  death_date,
+  setDeathDate,
+  notes,
+  setNotes,
+  father_id,
+  setFatherId,
+  mother_id,
+  setMotherId,
+  spouse_id,
+  setSpouseId,
 }: MemberInputFormProps) {
   const { members, loading } = useFamily();
-  // ✅ Kiểm tra quan hệ
-  const isParentOfCurrent = (m: any) =>
-    m.id === father_id || m.id === mother_id;
 
+  // ✅ Utility: Kiểm tra quan hệ
+  const isParentOfCurrent = (m: any) => m.id === father_id || m.id === mother_id;
   const isChildOfCurrent = (m: any) =>
     m.father_id === current_id || m.mother_id === current_id;
+  const isSpouseOfCurrent = (m: any) => m.id === spouse_id;
 
-  const isSpouseOfCurrent = (m: any) =>
-    m.id === spouse_id;
-
-  // ✅ Cha: Phải là Nam VÀ Hợp lệ
+  // ✅ Danh sách hợp lệ
   const fatherOptions = members.filter(
     m => m.id !== current_id && m.gender === "Nam" && !isChildOfCurrent(m) && !isSpouseOfCurrent(m)
   );
 
-  // ✅ Mẹ: Phải là Nữ VÀ Hợp lệ
   const motherOptions = members.filter(
     m => m.id !== current_id && m.gender === "Nữ" && !isChildOfCurrent(m) && !isSpouseOfCurrent(m)
   );
 
-  // ✅ Vợ/Chồng: Phải khác giới tính VÀ Hợp lệ
   const spouseOptions = members.filter(
     m => m.id !== current_id && m.gender !== gender && !isParentOfCurrent(m) && !isChildOfCurrent(m)
   );
 
+  // ✅ Khi chọn CHA
+  const handleSelectFather = (value: string | null) => {
+    setFatherId?.(value);
+
+    // Không chọn cha → reset mẹ
+    if (!value || value === "Không chọn") {
+      setMotherId?.(null);
+      return;
+    }
+
+    const father = members.find(m => m.id === value);
+    if (father?.spouse_id) {
+      setMotherId?.(father.spouse_id);
+    }
+  };
+
+  // ✅ Khi chọn MẸ
+  const handleSelectMother = (value: string | null) => {
+    setMotherId?.(value);
+
+    if (!value || value === "Không chọn") {
+      setFatherId?.(null);
+      return;
+    }
+
+    const mother = members.find(m => m.id === value);
+    if (mother?.spouse_id) {
+      setFatherId?.(mother.spouse_id);
+    }
+  };
+
+  // ✅ UI render
   return (
     <ScrollView>
       <View style={styles.container}>
-        {title ? <Text style={styles.title}>
-          {title}
-        </Text> : ''}
+        {title ? <Text style={styles.title}>{title}</Text> : null}
 
         {/* Full Name */}
         <Text style={styles.label}>Họ và tên *</Text>
@@ -125,7 +184,7 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
         <Text style={styles.label}>Cha</Text>
         <Picker
           selectedValue={father_id}
-          onValueChange={(value) => setFatherId?.(value)}
+          onValueChange={handleSelectFather}
           style={styles.picker}
         >
           <Picker.Item label="Không chọn" value={"Không chọn"} />
@@ -138,7 +197,7 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
         <Text style={styles.label}>Mẹ</Text>
         <Picker
           selectedValue={mother_id}
-          onValueChange={(value) => setMotherId?.(value)}
+          onValueChange={handleSelectMother}
           style={styles.picker}
         >
           <Picker.Item label="Không chọn" value={"Không chọn"} />
@@ -170,17 +229,16 @@ export default function MemberInputForm({ onPress, title, buttonTitle, full_name
           multiline
         />
 
+        {/* Button */}
         <View style={styles.button}>
           <Button
-            title={loading ? '...' : buttonTitle ? buttonTitle : ''}
+            title={loading ? '...' : buttonTitle ?? ''}
             onPress={onPress}
-
             disabled={loading}
             color="#007AFF"
           />
         </View>
 
-        {/* Toast */}
         <Toast position="bottom" bottomOffset={50} />
       </View>
     </ScrollView>
@@ -222,10 +280,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 8,
     overflow: 'hidden',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
