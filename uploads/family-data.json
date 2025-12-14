@@ -1,0 +1,80 @@
+[
+  {
+    "id": "id7696",
+    "full_name": "Lê Mạnh Hồng",
+    "gender": "Nam",
+    "phone_numbers": "0962166765",
+    "address": "",
+    "birth_date": "21/08/1987",
+    "death_date": null,
+    "father_id": "id1669",
+    "mother_id": "id582",
+    "spouse_id": "id5866",
+    "notes": null
+  },
+  {
+    "id": "id1669",
+    "full_name": "Lê Văn Liên",
+    "gender": "Nam",
+    "phone_numbers": "",
+    "address": "",
+    "birth_date": null,
+    "death_date": null,
+    "father_id": null,
+    "mother_id": null,
+    "spouse_id": "id582",
+    "notes": null
+  },
+  {
+    "id": "id582",
+    "full_name": "Hoàng Thị Chảo",
+    "gender": "Nữ",
+    "phone_numbers": "",
+    "address": "",
+    "birth_date": "1960",
+    "death_date": null,
+    "father_id": null,
+    "mother_id": null,
+    "spouse_id": "id1669",
+    "notes": null
+  },
+  {
+    "id": "id5866",
+    "full_name": "Lưu Thị Hạnh",
+    "gender": "Nữ",
+    "phone_numbers": "",
+    "address": "",
+    "birth_date": "1992",
+    "death_date": null,
+    "father_id": null,
+    "mother_id": null,
+    "spouse_id": "id7696",
+    "notes": null
+  },
+  {
+    "id": "id9904",
+    "full_name": "Lê Hồng Phúc",
+    "gender": "Nam",
+    "phone_numbers": "",
+    "address": "",
+    "birth_date": "2021",
+    "death_date": null,
+    "father_id": "id7696",
+    "mother_id": "id5866",
+    "spouse_id": null,
+    "notes": null
+  },
+  {
+    "id": "id9554",
+    "full_name": "Lê Bảo Trâm",
+    "gender": "Nữ",
+    "phone_numbers": "",
+    "address": "",
+    "birth_date": "2018",
+    "death_date": null,
+    "father_id": "id7696",
+    "mother_id": "id5866",
+    "spouse_id": null,
+    "notes": null
+  }
+]

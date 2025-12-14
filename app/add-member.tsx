@@ -1,11 +1,11 @@
 import MemberInputForm from '@/components/MemberInputForm';
 import { useFamily } from '@/context/FamilyContext';
+import { addFamilyMember } from '@/services/familyStorage';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 export default function AddMemberScreen() {
-  const API_BASE_URL = 'http://localhost:8080';
   const { refresh } = useFamily();
   const [full_name, setFullName] = useState('');
   const [gender, setGender] = useState<'Nam' | 'Nữ'>('Nam');
@@ -44,46 +44,33 @@ export default function AddMemberScreen() {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/add-family-member`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          full_name,
-          gender,
-          phone_numbers,
-          address,
-          birth_date: birth_date || null,
-          death_date: death_date || null,
-          notes: notes || null,
-          father_id,
-          mother_id,
-          spouse_id,
-        }),
+      await addFamilyMember({
+        id,
+        full_name: full_name.trim(),
+        gender,
+        phone_numbers: phone_numbers.trim(),
+        address: address.trim(),
+        birth_date: birth_date.trim() || null,
+        death_date: death_date.trim() || null,
+        notes: notes.trim() || null,
+        father_id: father_id || null,
+        mother_id: mother_id || null,
+        spouse_id: spouse_id || null,
       });
-      const data = await res.json();
 
-      if (res.ok) {
-        Toast.show({
-          type: 'success',
-          text1: '✅ Thêm thành công!',
-          text2: 'Đã thêm thành viên mới.',
-        });
-        resetForm();
-        refresh();
-
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: '❌ Thêm thất bại',
-          text2: data.error || 'Không thể thêm thành viên',
-        });
-      }
+      Toast.show({
+        type: 'success',
+        text1: '✅ Thêm thành công!',
+        text2: 'Đã thêm thành viên mới.',
+      });
+      resetForm();
+      await refresh();
     } catch (err: any) {
+      console.error('Lỗi khi thêm thành viên:', err);
       Toast.show({
         type: 'error',
-        text1: '❌ Lỗi kết nối',
-        text2: err.message || 'Không thể kết nối server',
+        text1: '❌ Lỗi lưu dữ liệu',
+        text2: err.message || 'Không thể thêm thành viên',
       });
     }
   };

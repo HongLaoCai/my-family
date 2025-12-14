@@ -1,7 +1,9 @@
 import { useFamily } from "@/context/FamilyContext";
+import { deleteFamilyMember } from "@/services/familyStorage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 interface MemberCardProps {
   id: string;
@@ -15,13 +17,19 @@ const MemberCard = ({ id }: MemberCardProps) => {
 
   const handleDelete = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/api/delete-family-member/${id}`, {
-        method: "DELETE",
+      await deleteFamilyMember(id);
+      Toast.show({
+        type: 'success',
+        text1: '✅ Xóa thành công!',
+        text2: 'Đã xóa thành viên.',
       });
-      if (!res.ok) throw new Error("Xóa thất bại");
       await refresh();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      Toast.show({
+        type: 'error',
+        text1: '❌ Lỗi xóa',
+        text2: err.message || 'Không thể xóa thành viên',
+      });
     }
   };
 

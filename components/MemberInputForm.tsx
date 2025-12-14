@@ -90,34 +90,42 @@ export default function MemberInputForm({
   );
 
   // ✅ Khi chọn CHA
-  const handleSelectFather = (value: string | null) => {
-    setFatherId?.(value);
+  const handleSelectFather = (value: string) => {
+    const actualValue = value === "" || value === "Không chọn" ? null : value;
+    setFatherId?.(actualValue);
 
     // Không chọn cha → reset mẹ
-    if (!value || value === "Không chọn") {
+    if (!actualValue) {
       setMotherId?.(null);
       return;
     }
 
-    const father = members.find(m => m.id === value);
+    const father = members.find(m => m.id === actualValue);
     if (father?.spouse_id) {
       setMotherId?.(father.spouse_id);
     }
   };
 
   // ✅ Khi chọn MẸ
-  const handleSelectMother = (value: string | null) => {
-    setMotherId?.(value);
+  const handleSelectMother = (value: string) => {
+    const actualValue = value === "" || value === "Không chọn" ? null : value;
+    setMotherId?.(actualValue);
 
-    if (!value || value === "Không chọn") {
+    if (!actualValue) {
       setFatherId?.(null);
       return;
     }
 
-    const mother = members.find(m => m.id === value);
+    const mother = members.find(m => m.id === actualValue);
     if (mother?.spouse_id) {
       setFatherId?.(mother.spouse_id);
     }
+  };
+
+  // ✅ Khi chọn VỢ/CHỒNG
+  const handleSelectSpouse = (value: string) => {
+    const actualValue = value === "" || value === "Không chọn" ? null : value;
+    setSpouseId?.(actualValue);
   };
 
   // ✅ UI render
@@ -183,11 +191,11 @@ export default function MemberInputForm({
         {/* Father */}
         <Text style={styles.label}>Cha</Text>
         <Picker
-          selectedValue={father_id}
+          selectedValue={father_id || ""}
           onValueChange={handleSelectFather}
           style={styles.picker}
         >
-          <Picker.Item label="Không chọn" value={"Không chọn"} />
+          <Picker.Item label="Không chọn" value={""} />
           {fatherOptions.map((m) => (
             <Picker.Item key={m.id} label={m.full_name} value={m.id} />
           ))}
@@ -196,11 +204,11 @@ export default function MemberInputForm({
         {/* Mother */}
         <Text style={styles.label}>Mẹ</Text>
         <Picker
-          selectedValue={mother_id}
+          selectedValue={mother_id || ""}
           onValueChange={handleSelectMother}
           style={styles.picker}
         >
-          <Picker.Item label="Không chọn" value={"Không chọn"} />
+          <Picker.Item label="Không chọn" value={""} />
           {motherOptions.map((m) => (
             <Picker.Item key={m.id} label={m.full_name} value={m.id} />
           ))}
@@ -209,11 +217,11 @@ export default function MemberInputForm({
         {/* Spouse */}
         <Text style={styles.label}>Vợ/Chồng</Text>
         <Picker
-          selectedValue={spouse_id}
-          onValueChange={(value) => setSpouseId?.(value)}
+          selectedValue={spouse_id || ""}
+          onValueChange={handleSelectSpouse}
           style={styles.picker}
         >
-          <Picker.Item label="Không chọn" value={"Không chọn"} />
+          <Picker.Item label="Không chọn" value={""} />
           {spouseOptions.map((m) => (
             <Picker.Item key={m.id} label={m.full_name} value={m.id} />
           ))}

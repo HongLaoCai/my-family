@@ -1,10 +1,10 @@
 import MemberInputForm from '@/components/MemberInputForm';
 import { useFamily } from '@/context/FamilyContext';
+import { updateFamilyMember } from '@/services/familyStorage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Toast from 'react-native-toast-message';
-const API_BASE_URL = 'http://localhost:8080';
 
 export default function EditMemberScreen() {
   const router = useRouter();
@@ -34,9 +34,9 @@ export default function EditMemberScreen() {
       setBirthDate(current.birth_date || '');
       setDeathDate(current.death_date || '');
       setNotes(current.notes || '');
-      setFatherId(String(current.father_id));
-      setMotherId(String(current.mother_id));
-      setSpouseId(String(current.spouse_id));
+      setFatherId(current.father_id);
+      setMotherId(current.mother_id);
+      setSpouseId(current.spouse_id);
     }
   }, [current]);
   const handleSave = async () => {
@@ -45,45 +45,31 @@ export default function EditMemberScreen() {
       return;
     }
     try {
-      const res = await fetch(`${API_BASE_URL}/api/update-family-member/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id, // gửi kèm id để backend biết là sửa
-          full_name,
-          gender,
-          phone_numbers,
-          address,
-          birth_date: birth_date || null,
-          death_date: death_date || null,
-          notes: notes || null,
-          father_id,
-          mother_id,
-          spouse_id,
-        }),
+      await updateFamilyMember(id as string, {
+        full_name,
+        gender,
+        phone_numbers,
+        address,
+        birth_date: birth_date || null,
+        death_date: death_date || null,
+        notes: notes || null,
+        father_id: father_id || null,
+        mother_id: mother_id || null,
+        spouse_id: spouse_id || null,
       });
 
-      const data = await res.json();
-      if (res.ok) {
-        Toast.show({
-          type: 'success',
-          text1: '✅ Lưu thành công!',
-          text2: 'Thông tin thành viên đã được cập nhật.',
-        });
-        await refresh(); // cập nhật lại dữ liệu
-        router.back(); // quay lại trang trước
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: '❌ Cập nhật thất bại',
-          text2: data.error || 'Không thể cập nhật thành viên',
-        });
-      }
+      Toast.show({
+        type: 'success',
+        text1: '✅ Lưu thành công!',
+        text2: 'Thông tin thành viên đã được cập nhật.',
+      });
+      await refresh(); // cập nhật lại dữ liệu
+      router.back(); // quay lại trang trước
     } catch (err: any) {
       Toast.show({
         type: 'error',
-        text1: '❌ Lỗi kết nối',
-        text2: err.message || 'Không thể kết nối server',
+        text1: '❌ Lỗi lưu dữ liệu',
+        text2: err.message || 'Không thể cập nhật thành viên',
       });
     }
   };

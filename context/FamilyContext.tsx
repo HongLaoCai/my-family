@@ -1,19 +1,6 @@
 // src/context/FamilyContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
-interface FamilyMember {
-  id: string;
-  full_name: string;
-  gender: string;
-  phone_numbers: string;
-  address: string;
-  birth_date: string | null;
-  death_date: string | null;
-  father_id: string | null;
-  mother_id: string | null;
-  spouse_id: string | null;
-  notes: string | null;
-}
+import { loadFamilyData, FamilyMember } from '@/services/familyStorage';
 
 interface FamilyContextType {
   members: FamilyMember[];
@@ -29,8 +16,6 @@ const FamilyContext = createContext<FamilyContextType>({
   refresh: async () => {},
 });
 
-const API_BASE_URL = 'http://localhost:8080';
-
 export const FamilyProvider = ({ children }: { children: React.ReactNode }) => {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,9 +24,7 @@ export const FamilyProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchMembers = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/list-all-family-members`);
-      if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
-      const data = await res.json();
+      const data = await loadFamilyData();
       setMembers(data);
       setError(null);
     } catch (err: any) {
