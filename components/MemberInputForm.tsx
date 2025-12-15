@@ -1,4 +1,5 @@
 import { useFamily } from '@/context/FamilyContext';
+import { calculateAge } from '@/utils/dateUtils';
 import { Picker } from '@react-native-picker/picker';
 import React from 'react';
 import { Button, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -70,24 +71,6 @@ export default function MemberInputForm({
 }: MemberInputFormProps) {
   const { members, loading } = useFamily();
 
-  // ✅ Utility: Tính tuổi từ ngày sinh
-  const calculateAge = (birthDate: string | null | undefined): string => {
-    if (!birthDate) return '';
-    try {
-      const birth = new Date(birthDate);
-      if (isNaN(birth.getTime())) return '';
-      const today = new Date();
-      let age = today.getFullYear() - birth.getFullYear();
-      const monthDiff = today.getMonth() - birth.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-        age--;
-      }
-      return age >= 0 ? `${age} tuổi` : '';
-    } catch {
-      return '';
-    }
-  };
-
   // ✅ Utility: Kiểm tra quan hệ
   const isParentOfCurrent = (m: any) => m.id === father_id || m.id === mother_id;
   const isChildOfCurrent = (m: any) =>
@@ -119,8 +102,13 @@ export default function MemberInputForm({
     }
 
     const father = members.find(m => m.id === actualValue);
+    // Nếu cha có vợ, tự động set mẹ (chỉ nếu chưa có mẹ hoặc mẹ hiện tại không phải vợ của cha)
     if (father?.spouse_id) {
-      setMotherId?.(father.spouse_id);
+      const currentMotherId = mother_id;
+      // Chỉ tự động set nếu chưa có mẹ hoặc mẹ hiện tại không phải vợ của cha mới
+      if (!currentMotherId || currentMotherId !== father.spouse_id) {
+        setMotherId?.(father.spouse_id);
+      }
     }
   };
 
@@ -206,7 +194,7 @@ export default function MemberInputForm({
             <Text style={styles.label}>Ngày sinh</Text>
             <TextInput
               style={styles.input}
-              placeholder="YYYY-MM-DD"
+              placeholder="21/08/1987, 08/1987, 1987..."
               value={birth_date}
               onChangeText={setBirthDate}
             />

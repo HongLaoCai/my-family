@@ -1,36 +1,63 @@
 import MemberCard from '@/components/MemberCard';
 import { useFamily } from '@/context/FamilyContext';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
   const { members, loading, error, } = useFamily();
   const [numColumns, setNumColumns] = useState(1);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Tính số cột dựa trên width màn hình
+  const calculateColumns = (screenWidth: number): number => {
+    // Breakpoints: 400px = 1 cột, 800px = 2 cột, 1200px = 3 cột, >1200px = 4 cột
+    if (screenWidth < 400) {
+      return 1;
+    } else if (screenWidth < 800) {
+      return 2;
+    } else if (screenWidth < 1200) {
+      return 3;
+    } else {
+      return 4;
+    }
+  };
   
   // Tính số cột dựa trên width màn hình và cập nhật khi màn hình thay đổi
   useEffect(() => {
-    const calculateColumns = () => {
-      const screenWidth = Dimensions.get('window').width;
-      
-      // Breakpoints: 400px = 1 cột, 800px = 2 cột, 1200px = 3 cột, >1200px = 4 cột
-      if (screenWidth < 400) {
-        setNumColumns(1);
-      } else if (screenWidth < 800) {
-        setNumColumns(2);
-      } else if (screenWidth < 1200) {
-        setNumColumns(3);
-      } else {
-        setNumColumns(4);
+    const handleDimensionChange = () => {
+      // Clear timeout cũ nếu có
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
+      
+      // Debounce: chỉ cập nhật sau 150ms khi người dùng ngừng resize
+      timeoutRef.current = setTimeout(() => {
+        const screenWidth = Dimensions.get('window').width;
+        const newColumns = calculateColumns(screenWidth);
+        
+        // Chỉ cập nhật state nếu số cột thực sự thay đổi
+        setNumColumns((prevColumns) => {
+          if (prevColumns !== newColumns) {
+            return newColumns;
+          }
+          return prevColumns;
+        });
+      }, 150);
     };
 
-    // Tính toán lần đầu
-    calculateColumns();
+    // Tính toán lần đầu (không debounce)
+    const initialWidth = Dimensions.get('window').width;
+    const initialColumns = calculateColumns(initialWidth);
+    setNumColumns(initialColumns);
 
     // Lắng nghe thay đổi kích thước màn hình
-    const subscription = Dimensions.addEventListener('change', calculateColumns);
+    const subscription = Dimensions.addEventListener('change', handleDimensionChange);
 
     return () => {
+      // Cleanup: xóa timeout và remove listener
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       subscription?.remove();
     };
   }, []);

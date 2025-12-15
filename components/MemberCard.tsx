@@ -1,5 +1,6 @@
 import { useFamily } from "@/context/FamilyContext";
 import { deleteFamilyMember } from "@/services/familyStorage";
+import { calculateAge, getSiblingOrder } from "@/utils/dateUtils";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -41,6 +42,21 @@ const MemberCard = ({ id }: MemberCardProps) => {
 
   const isDead = !!item.death_date;
 
+  // Tìm anh chị em ruột (cùng cả cha và mẹ)
+  const siblings = members.filter(
+    (m) =>
+      m.id !== item.id &&
+      // Phải có cùng cha
+      ((item.father_id && m.father_id === item.father_id) || (!item.father_id && !m.father_id)) &&
+      // Phải có cùng mẹ
+      ((item.mother_id && m.mother_id === item.mother_id) || (!item.mother_id && !m.mother_id)) &&
+      // Ít nhất phải có một trong hai (cha hoặc mẹ) để xác định là anh chị em
+      (item.father_id || item.mother_id)
+  );
+
+  // Tính thứ tự anh/chị/em
+  const siblingOrder = getSiblingOrder(item, siblings);
+
   // Icon & màu
   const iconName = isDead ? "coffin" : item.gender === "Nam" ? "human-male" : "human-female";
   const iconColor = isDead ? "#5A3E36" : item.gender === "Nam" ? "#2563EB" : "#16A34A";
@@ -65,7 +81,11 @@ const MemberCard = ({ id }: MemberCardProps) => {
               {item.full_name}
             </Text>
             <Text style={styles.meta}>
-              {isDead ? "Đã mất" : item.gender === "Nam" ? "Nam" : "Nữ"}
+              {isDead 
+                ? "Đã mất" 
+                : siblingOrder 
+                  ? `${item.gender === "Nam" ? "Nam" : "Nữ"} - ${siblingOrder}`
+                  : item.gender === "Nam" ? "Nam" : "Nữ"}
             </Text>
           </View>
         </View>
@@ -80,10 +100,18 @@ const MemberCard = ({ id }: MemberCardProps) => {
           </View>
         )}
         {item.birth_date && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>🎂 Sinh:</Text>
-            <Text style={styles.value}>{item.birth_date}</Text>
-          </View>
+          <>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>🎂 Sinh:</Text>
+              <Text style={styles.value}>{item.birth_date}</Text>
+            </View>
+            {calculateAge(item.birth_date) && (
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>📅 Tuổi:</Text>
+                <Text style={styles.value}>{calculateAge(item.birth_date)}</Text>
+              </View>
+            )}
+          </>
         )}
         {item.death_date && (
           <View style={styles.infoRow}>
