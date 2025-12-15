@@ -16,56 +16,70 @@ export interface FamilyMember {
 }
 
 const STORAGE_KEY = 'family-data';
-const JSON_FILE_PATH = '/uploads/family-data.json';
+const SYNC_SERVER_URL = 'http://localhost:3001'; // URL của sync server
 
-// Đọc dữ liệu từ local storage
-// Nếu localStorage rỗng, đọc từ file JSON qua sync server và lưu vào localStorage
+// Đọc dữ liệu từ local storage, nếu rỗng thì đọc từ file JSON qua sync server
 export const loadFamilyData = async (): Promise<FamilyMember[]> => {
   try {
     let data: string | null;
-    
+
     // Đọc từ local storage
     if (Platform.OS === 'web') {
       data = localStorage.getItem(STORAGE_KEY);
     } else {
-      // Trên mobile, dùng AsyncStorage
       data = await AsyncStorage.getItem(STORAGE_KEY);
     }
-    
-    // Nếu có dữ liệu trong localStorage, trả về luôn
+
+    // Nếu có dữ liệu trong localStorage và không rỗng, trả về luôn
     if (data) {
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    }
-    
-    // Nếu localStorage rỗng hoặc không có dữ liệu, thử đọc từ file JSON qua sync server
-    if (Platform.OS === 'web') {
       try {
-        console.log('📂 localStorage rỗng, đang đọc từ file JSON...');
-        const response = await fetch('http://localhost:3001/api/family-members');
-        if (response.ok) {
-          const fileData = await response.json();
-          if (Array.isArray(fileData) && fileData.length > 0) {
-            // Lưu vào localStorage để lần sau không cần đọc lại
-            const jsonData = JSON.stringify(fileData, null, 2);
-            localStorage.setItem(STORAGE_KEY, jsonData);
-            console.log('✅ Đã tải dữ liệu từ file JSON và lưu vào localStorage');
-            return fileData;
-          }
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log(`✅ Đã tải ${parsed.length} thành viên từ localStorage`);
+          return parsed;
         }
-      } catch (fetchError) {
-        // Nếu không đọc được từ sync server, trả về mảng rỗng
-        console.log('⚠️ Không thể đọc từ file JSON, trả về mảng rỗng');
-        console.log('💡 Đảm bảo sync server đang chạy (yarn start hoặc npm start)');
+      } catch (parseError) {
+        // Nếu parse lỗi, coi như localStorage không hợp lệ, sẽ thử đọc từ JSON
+        console.warn('⚠️ Dữ liệu localStorage không hợp lệ, sẽ thử đọc từ file JSON');
       }
     }
-    
+
+    // Nếu localStorage rỗng hoặc không có dữ liệu, thử đọc từ file JSON qua sync server
+    console.log('📂 localStorage rỗng hoặc không có dữ liệu, đang đọc từ file JSON...');
+    try {
+      const response = await fetch(`${SYNC_SERVER_URL}/api/family-members`);
+      if (response.ok) {
+        const fileData = await response.json();
+        if (Array.isArray(fileData) && fileData.length > 0) {
+          // Nếu file có dữ liệu, đồng bộ vào localStorage
+          const jsonData = JSON.stringify(fileData, null, 2);
+          if (Platform.OS === 'web') {
+            localStorage.setItem(STORAGE_KEY, jsonData);
+          } else {
+            await AsyncStorage.setItem(STORAGE_KEY, jsonData);
+          }
+          console.log(`✅ Đã tải ${fileData.length} thành viên từ file JSON và lưu vào localStorage`);
+          return fileData;
+        } else {
+          console.log('📝 File JSON tồn tại nhưng chưa có dữ liệu');
+        }
+      } else {
+        console.warn(`⚠️ Sync server trả về lỗi: ${response.status}`);
+      }
+    } catch (fetchError: any) {
+      // Nếu không đọc được từ sync server, log warning nhưng không throw error
+      console.warn('⚠️ Không thể đọc từ file JSON qua sync server:', fetchError.message || fetchError);
+      if (Platform.OS === 'web') {
+        console.warn('💡 Đảm bảo sync server đang chạy (npm run sync hoặc yarn start)');
+      } else {
+        console.warn('💡 Trên mobile, cần cấu hình để truy cập sync server từ thiết bị');
+      }
+    }
+
     // Trả về mảng rỗng nếu không có dữ liệu
     return [];
   } catch (error) {
-    console.error('Lỗi đọc dữ liệu:', error);
+    console.error('❌ Lỗi đọc dữ liệu:', error);
     return [];
   }
 };
@@ -74,16 +88,17 @@ export const loadFamilyData = async (): Promise<FamilyMember[]> => {
 export const saveFamilyData = async (members: FamilyMember[]): Promise<void> => {
   try {
     const jsonData = JSON.stringify(members, null, 2);
-    
+
     // Lưu vào local storage
     if (Platform.OS === 'web') {
       localStorage.setItem(STORAGE_KEY, jsonData);
     } else {
       await AsyncStorage.setItem(STORAGE_KEY, jsonData);
     }
-    
+
     // Tự động cập nhật file JSON thông qua sync server (chạy ngầm)
-    // Chỉ cập nhật trên web (mobile sẽ không gọi được localhost)
+    // Chỉ cập nhật trên web (mobile sẽ không gọi được localhost trực tiếp)
+    // Mobile sẽ cần một cơ chế khác để đồng bộ file nếu muốn
     if (Platform.OS === 'web') {
       updateJsonFile(jsonData).catch((error) => {
         // Log lỗi nhưng không làm gián đoạn app
@@ -102,17 +117,17 @@ export const saveFamilyData = async (members: FamilyMember[]): Promise<void> => 
 const updateJsonFile = async (jsonData: string): Promise<void> => {
   try {
     // Gọi API endpoint của sync server để lưu file JSON
-    const response = await fetch('http://localhost:3001/api/save-json', {
+    const response = await fetch(`${SYNC_SERVER_URL}/api/save-json`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: jsonData }),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
-    
+
     const result = await response.json();
     console.log('✅ Đã cập nhật file JSON thành công:', result.message);
   } catch (error: any) {
@@ -154,6 +169,43 @@ export const addFamilyMember = async (member: FamilyMember): Promise<void> => {
     };
     
     members.push(newMember);
+    
+    // ✅ Tự động cập nhật quan hệ 2 chiều
+    
+    // 1. Cập nhật spouse_id của người vợ/chồng
+    if (newMember.spouse_id) {
+      const spouseIndex = members.findIndex(m => m.id === newMember.spouse_id);
+      if (spouseIndex !== -1) {
+        members[spouseIndex].spouse_id = newMember.id;
+      }
+    }
+    
+    // 2. Nếu có cha, tự động cập nhật mẹ (nếu cha có vợ)
+    if (newMember.father_id) {
+      const father = members.find(m => m.id === newMember.father_id);
+      if (father?.spouse_id && !newMember.mother_id) {
+        newMember.mother_id = father.spouse_id;
+        // Cập nhật lại trong members array
+        const newMemberIndex = members.findIndex(m => m.id === newMember.id);
+        if (newMemberIndex !== -1) {
+          members[newMemberIndex].mother_id = father.spouse_id;
+        }
+      }
+    }
+    
+    // 3. Nếu có mẹ, tự động cập nhật cha (nếu mẹ có chồng)
+    if (newMember.mother_id) {
+      const mother = members.find(m => m.id === newMember.mother_id);
+      if (mother?.spouse_id && !newMember.father_id) {
+        newMember.father_id = mother.spouse_id;
+        // Cập nhật lại trong members array
+        const newMemberIndex = members.findIndex(m => m.id === newMember.id);
+        if (newMemberIndex !== -1) {
+          members[newMemberIndex].father_id = mother.spouse_id;
+        }
+      }
+    }
+    
     await saveFamilyData(members);
   } catch (error: any) {
     console.error('Lỗi thêm thành viên:', error);
@@ -168,7 +220,66 @@ export const updateFamilyMember = async (id: string, updatedMember: Partial<Fami
   if (index === -1) {
     throw new Error('Không tìm thấy thành viên');
   }
+  
+  const oldMember = { ...members[index] };
   members[index] = { ...members[index], ...updatedMember };
+  const newMember = members[index];
+  
+  // ✅ Tự động cập nhật quan hệ 2 chiều
+  
+  // 1. Xử lý spouse_id: Cập nhật 2 chiều
+  if (updatedMember.spouse_id !== undefined) {
+    // Xóa quan hệ cũ: Nếu trước đây có spouse, xóa spouse_id của người đó
+    if (oldMember.spouse_id && oldMember.spouse_id !== newMember.spouse_id) {
+      const oldSpouseIndex = members.findIndex(m => m.id === oldMember.spouse_id);
+      if (oldSpouseIndex !== -1) {
+        members[oldSpouseIndex].spouse_id = null;
+      }
+    }
+    
+    // Tạo quan hệ mới: Nếu có spouse mới, cập nhật spouse_id của người đó
+    if (newMember.spouse_id) {
+      const spouseIndex = members.findIndex(m => m.id === newMember.spouse_id);
+      if (spouseIndex !== -1) {
+        members[spouseIndex].spouse_id = id;
+      }
+    } else {
+      // Nếu xóa spouse, cũng xóa spouse_id của người kia
+      if (oldMember.spouse_id) {
+        const oldSpouseIndex = members.findIndex(m => m.id === oldMember.spouse_id);
+        if (oldSpouseIndex !== -1) {
+          members[oldSpouseIndex].spouse_id = null;
+        }
+      }
+    }
+  }
+  
+  // 2. Nếu có cha, tự động cập nhật mẹ (nếu cha có vợ)
+  if (updatedMember.father_id !== undefined) {
+    if (newMember.father_id) {
+      const father = members.find(m => m.id === newMember.father_id);
+      if (father?.spouse_id && !newMember.mother_id) {
+        members[index].mother_id = father.spouse_id;
+      }
+    } else {
+      // Nếu xóa cha, cũng xóa mẹ
+      members[index].mother_id = null;
+    }
+  }
+  
+  // 3. Nếu có mẹ, tự động cập nhật cha (nếu mẹ có chồng)
+  if (updatedMember.mother_id !== undefined) {
+    if (newMember.mother_id) {
+      const mother = members.find(m => m.id === newMember.mother_id);
+      if (mother?.spouse_id && !newMember.father_id) {
+        members[index].father_id = mother.spouse_id;
+      }
+    } else {
+      // Nếu xóa mẹ, cũng xóa cha
+      members[index].father_id = null;
+    }
+  }
+  
   await saveFamilyData(members);
 };
 

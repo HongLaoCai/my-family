@@ -1,7 +1,7 @@
 import { useFamily } from '@/context/FamilyContext';
 import { Picker } from '@react-native-picker/picker';
 import React from 'react';
-import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 interface MemberInputFormProps {
@@ -69,6 +69,24 @@ export default function MemberInputForm({
   setSpouseId,
 }: MemberInputFormProps) {
   const { members, loading } = useFamily();
+
+  // ✅ Utility: Tính tuổi từ ngày sinh
+  const calculateAge = (birthDate: string | null | undefined): string => {
+    if (!birthDate) return '';
+    try {
+      const birth = new Date(birthDate);
+      if (isNaN(birth.getTime())) return '';
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      return age >= 0 ? `${age} tuổi` : '';
+    } catch {
+      return '';
+    }
+  };
 
   // ✅ Utility: Kiểm tra quan hệ
   const isParentOfCurrent = (m: any) => m.id === father_id || m.id === mother_id;
@@ -143,16 +161,28 @@ export default function MemberInputForm({
           onChangeText={setFullName}
         />
 
-        {/* Gender */}
+        {/* Gender - Radio Buttons */}
         <Text style={styles.label}>Giới tính *</Text>
-        <Picker
-          selectedValue={gender}
-          onValueChange={(value) => setGender?.(value)}
-          style={styles.picker}
-        >
-          <Picker.Item label="Nam" value="Nam" />
-          <Picker.Item label="Nữ" value="Nữ" />
-        </Picker>
+        <View style={styles.radioContainer}>
+          <TouchableOpacity
+            style={[styles.radioButton, { marginRight: 10 }]}
+            onPress={() => setGender?.('Nam')}
+          >
+            <View style={styles.radioCircle}>
+              {(gender || 'Nam') === 'Nam' && <View style={styles.radioSelected} />}
+            </View>
+            <Text style={styles.radioLabel}>Nam</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.radioButton, { marginRight: 0 }]}
+            onPress={() => setGender?.('Nữ')}
+          >
+            <View style={styles.radioCircle}>
+              {gender === 'Nữ' && <View style={styles.radioSelected} />}
+            </View>
+            <Text style={styles.radioLabel}>Nữ</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Phone Numbers */}
         <Text style={styles.label}>Số điện thoại</Text>
@@ -171,13 +201,23 @@ export default function MemberInputForm({
         />
 
         {/* Birth Date */}
-        <Text style={styles.label}>Ngày sinh</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="YYYY-MM-DD"
-          value={birth_date}
-          onChangeText={setBirthDate}
-        />
+        <View style={styles.dateRow}>
+          <View style={styles.dateInputContainer}>
+            <Text style={styles.label}>Ngày sinh</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="YYYY-MM-DD"
+              value={birth_date}
+              onChangeText={setBirthDate}
+            />
+          </View>
+          {birth_date && calculateAge(birth_date) && (
+            <View style={styles.ageContainer}>
+              <Text style={styles.ageLabel}>Tuổi</Text>
+              <Text style={styles.ageValue}>{calculateAge(birth_date)}</Text>
+            </View>
+          )}
+        </View>
 
         {/* Death Date */}
         <Text style={styles.label}>Ngày mất</Text>
@@ -193,7 +233,7 @@ export default function MemberInputForm({
         <Picker
           selectedValue={father_id || ""}
           onValueChange={handleSelectFather}
-          style={styles.picker}
+          style={styles.pickerLarge}
         >
           <Picker.Item label="Không chọn" value={""} />
           {fatherOptions.map((m) => (
@@ -206,7 +246,7 @@ export default function MemberInputForm({
         <Picker
           selectedValue={mother_id || ""}
           onValueChange={handleSelectMother}
-          style={styles.picker}
+          style={styles.pickerLarge}
         >
           <Picker.Item label="Không chọn" value={""} />
           {motherOptions.map((m) => (
@@ -219,7 +259,7 @@ export default function MemberInputForm({
         <Picker
           selectedValue={spouse_id || ""}
           onValueChange={handleSelectSpouse}
-          style={styles.picker}
+          style={styles.pickerLarge}
         >
           <Picker.Item label="Không chọn" value={""} />
           {spouseOptions.map((m) => (
@@ -284,9 +324,74 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
   },
+  pickerLarge: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 12,
+    minHeight: 50,
+  },
+  radioContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    justifyContent: 'space-between',
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    flex: 1,
+  },
+  radioCircle: {
+    height: 24,
+    width: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  radioSelected: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#007AFF',
+  },
+  radioLabel: {
+    fontSize: 16,
+    color: '#333',
+  },
   button: {
     marginTop: 10,
     borderRadius: 8,
     overflow: 'hidden',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  dateInputContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
+  ageContainer: {
+    justifyContent: 'flex-end',
+    paddingBottom: 4,
+    minWidth: 80,
+    alignItems: 'flex-end',
+  },
+  ageLabel: {
+    fontSize: 14,
+    marginBottom: 4,
+    color: '#333',
+  },
+  ageValue: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#007AFF',
   },
 });

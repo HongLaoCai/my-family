@@ -1,10 +1,39 @@
 import MemberCard from '@/components/MemberCard';
 import { useFamily } from '@/context/FamilyContext';
-import React from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, FlatList, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
   const { members, loading, error, } = useFamily();
+  const [numColumns, setNumColumns] = useState(1);
+  
+  // Tính số cột dựa trên width màn hình và cập nhật khi màn hình thay đổi
+  useEffect(() => {
+    const calculateColumns = () => {
+      const screenWidth = Dimensions.get('window').width;
+      
+      // Breakpoints: 400px = 1 cột, 800px = 2 cột, 1200px = 3 cột, >1200px = 4 cột
+      if (screenWidth < 400) {
+        setNumColumns(1);
+      } else if (screenWidth < 800) {
+        setNumColumns(2);
+      } else if (screenWidth < 1200) {
+        setNumColumns(3);
+      } else {
+        setNumColumns(4);
+      }
+    };
+
+    // Tính toán lần đầu
+    calculateColumns();
+
+    // Lắng nghe thay đổi kích thước màn hình
+    const subscription = Dimensions.addEventListener('change', calculateColumns);
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
 
   return (
@@ -24,10 +53,14 @@ export default function HomeScreen() {
         </View>
       ) : (
         <FlatList
+          key={numColumns} // Force re-render khi numColumns thay đổi
           data={members}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => <MemberCard id={item.id} />}
-          contentContainerStyle={{ paddingBottom: 60, paddingHorizontal: 16 }}
+          numColumns={numColumns}
+          columnWrapperStyle={numColumns > 1 ? styles.row : undefined}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -38,7 +71,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
-    paddingTop: 20,
+    paddingTop: 8,
+  },
+  row: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+  },
+  listContent: {
+    paddingBottom: 60,
   },
   header: {
     marginBottom: 12,

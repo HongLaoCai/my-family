@@ -51,97 +51,95 @@ const MemberCard = ({ id }: MemberCardProps) => {
       {/* Header */}
       <View style={styles.cardHeader}>
         <View style={styles.leftHeader}>
-          <Text style={{ fontSize: 44, marginRight: 12 }}>{isDead ? "⚰️" : ""}</Text>
+          <Text style={styles.iconEmoji}>{isDead ? "⚰️" : ""}</Text>
           {!isDead && (
             <MaterialCommunityIcons
               name={iconName as any}
-              size={44}
+              size={32}
               color={iconColor}
-              style={{ marginRight: 12 }}
+              style={styles.icon}
             />
           )}
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.name, { color: textColor }]}>{item.full_name}</Text>
+          <View style={styles.nameContainer}>
+            <Text style={[styles.name, { color: textColor }]} numberOfLines={2}>
+              {item.full_name}
+            </Text>
             <Text style={styles.meta}>
               {isDead ? "Đã mất" : item.gender === "Nam" ? "Nam" : "Nữ"}
             </Text>
           </View>
         </View>
-
-        {/* Buttons */}
-        <View style={styles.headerButtonRow}>
-          <Pressable
-            style={[styles.actionBtn, styles.viewBtn]}
-            onPress={() =>
-              router.push({ pathname: "/detail-member", params: { id: item.id } })
-            }
-          >
-            <Text style={styles.btnText}>Xem</Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.actionBtn, styles.editBtn]}
-            onPress={() =>
-              router.push({ pathname: "/edit-member", params: { id: item.id } })
-            }
-          >
-            <Text style={styles.btnText}>Sửa</Text>
-          </Pressable>
-
-          <Pressable style={[styles.actionBtn, styles.deleteBtn]} onPress={handleDelete}>
-            <Text style={styles.btnText}>Xóa</Text>
-          </Pressable>
-        </View>
       </View>
 
       {/* Info */}
-      {item.phone_numbers && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>📞 SĐT:</Text>
-          <Text style={styles.value}>{item.phone_numbers}</Text>
-        </View>
-      )}
-      {item.address && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>🏠 Địa chỉ:</Text>
-          <Text style={styles.value}>{item.address}</Text>
-        </View>
-      )}
-      {item.birth_date && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>🎂 Sinh:</Text>
-          <Text style={styles.value}>{item.birth_date}</Text>
-        </View>
-      )}
-      {item.death_date && (
-        <View style={styles.infoRow}>
-          <Text style={[styles.label, { color: "#5A3E36" }]}>⚰️ Mất:</Text>
-          <Text style={[styles.value, { color: "#5A3E36" }]}>{item.death_date}</Text>
-        </View>
-      )}
-      {item.father_id && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>👨 Cha:</Text>
-          <Text style={styles.value}>{getNameById(item.father_id)}</Text>
-        </View>
-      )}
-      {item.mother_id && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>👩 Mẹ:</Text>
-          <Text style={styles.value}>{getNameById(item.mother_id)}</Text>
-        </View>
-      )}
-      {item.spouse_id && (
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>💍 {item.gender === "Nam" ? "Vợ" : "Chồng"}:</Text>
-          <Text style={styles.value}>{getNameById(item.spouse_id)}</Text>
-        </View>
-      )}
-      {item.notes && (
-        <View style={styles.noteBox}>
-          <Text style={styles.noteText}>📝 {item.notes}</Text>
-        </View>
-      )}
+      <View style={styles.infoContainer}>
+        {item.phone_numbers && (
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>📞 SĐT:</Text>
+            <Text style={styles.value} numberOfLines={1}>{item.phone_numbers}</Text>
+          </View>
+        )}
+        {item.birth_date && (
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>🎂 Sinh:</Text>
+            <Text style={styles.value}>{item.birth_date}</Text>
+          </View>
+        )}
+        {item.death_date && (
+          <View style={styles.infoRow}>
+            <Text style={[styles.label, { color: "#5A3E36" }]}>⚰️ Mất:</Text>
+            <Text style={[styles.value, { color: "#5A3E36" }]}>{item.death_date}</Text>
+          </View>
+        )}
+        {item.father_id && (
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>👨 Cha:</Text>
+            <Text style={styles.value} numberOfLines={1}>{getNameById(item.father_id)}</Text>
+          </View>
+        )}
+        {item.mother_id && (
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>👩 Mẹ:</Text>
+            <Text style={styles.value} numberOfLines={1}>{getNameById(item.mother_id)}</Text>
+          </View>
+        )}
+        {item.spouse_id && (
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>💍 {item.gender === "Nam" ? "Vợ" : "Chồng"}:</Text>
+            <Text style={styles.value} numberOfLines={1}>{getNameById(item.spouse_id)}</Text>
+          </View>
+        )}
+        {item.notes && (
+          <View style={styles.noteBox}>
+            <Text style={styles.noteText} numberOfLines={2}>📝 {item.notes}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Buttons - Di chuyển xuống dưới */}
+      <View style={styles.buttonRow}>
+        <Pressable
+          style={[styles.actionBtn, styles.viewBtn]}
+          onPress={() =>
+            router.push({ pathname: "/detail-member", params: { id: item.id } })
+          }
+        >
+          <Text style={styles.btnText}>Xem</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.actionBtn, styles.editBtn]}
+          onPress={() =>
+            router.push({ pathname: "/edit-member", params: { id: item.id } })
+          }
+        >
+          <Text style={styles.btnText}>Sửa</Text>
+        </Pressable>
+
+        <Pressable style={[styles.actionBtn, styles.deleteBtn]} onPress={handleDelete}>
+          <Text style={styles.btnText}>Xóa</Text>
+        </Pressable>
+      </View>
     </View>
   );
 };
@@ -149,77 +147,115 @@ const MemberCard = ({ id }: MemberCardProps) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginVertical: 8,
+    borderRadius: 12,
+    padding: 10,
+    marginVertical: 6,
+    marginHorizontal: 4,
     shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
     elevation: 2,
+    minWidth: 160,
+    flex: 1,
+    maxWidth: '100%',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
 
   cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 8,
   },
 
   leftHeader: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
-    paddingRight: 8,
   },
 
-  headerButtonRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  iconEmoji: {
+    fontSize: 28,
+    marginRight: 8,
+  },
+
+  icon: {
+    marginRight: 8,
+  },
+
+  nameContainer: {
+    flex: 1,
+    minWidth: 0,
   },
 
   name: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "600",
+    lineHeight: 22,
   },
 
   meta: {
     fontSize: 14,
     color: "#64748B",
+    marginTop: 2,
+  },
+
+  infoContainer: {
+    marginTop: 6,
+    marginBottom: 8,
+    flex: 1,
   },
 
   infoRow: {
     flexDirection: "row",
-    marginVertical: 2,
+    marginVertical: 5,
+    alignItems: "center",
   },
 
   label: {
-    width: 100,
     color: "#475569",
-    fontWeight: "500",
+    fontSize: 15,
+    fontWeight: "600",
+    marginRight: 6,
+    flexShrink: 0,
   },
 
   value: {
-    flex: 1,
     color: "#1E293B",
+    fontSize: 15,
+    lineHeight: 20,
+    flex: 1,
+    flexWrap: "wrap",
   },
 
   noteBox: {
-    marginTop: 6,
+    marginTop: 4,
     backgroundColor: "#F1F5F9",
-    borderRadius: 8,
-    padding: 8,
+    borderRadius: 6,
+    padding: 6,
   },
 
   noteText: {
     fontStyle: "italic",
     color: "#475569",
+    fontSize: 12,
+    lineHeight: 16,
+  },
+
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 'auto',
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
   },
 
   actionBtn: {
-    paddingVertical: 6,
+    paddingVertical: 8,
     paddingHorizontal: 10,
-    borderRadius: 8,
-    marginLeft: 6,
+    borderRadius: 6,
+    flex: 1,
+    marginHorizontal: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   viewBtn: {
@@ -237,6 +273,7 @@ const styles = StyleSheet.create({
   btnText: {
     color: "#fff",
     fontWeight: "600",
+    fontSize: 13,
   },
 
   btnTextDark: {
